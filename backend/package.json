@@ -13,7 +13,8 @@
     "test:all": "node --test tests/*.test.js",
     "catalog:refresh": "node scripts/refreshCatalog.js",
     "scrape": "node scripts/runScraper.js",
-    "scrape:headed": "node scripts/runScraper.js --headed"
+    "scrape:headed": "node scripts/runScraper.js --headed",
+    "render-build": "npm install && npx playwright install chromium"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",
