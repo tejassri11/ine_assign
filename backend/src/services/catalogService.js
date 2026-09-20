@@ -301,59 +301,102 @@ class CatalogService {
   }
 
   /**
-   * Fast In-Memory Search:
+   * Fast In-Memory Search with Relevance Scoring:
    * Supports exact and partial match, case-insensitive, ignores leading/trailing whitespace.
-   * Can match product name, brand, SKU, and category.
+   * Matches product ID, name, brand, SKU, category, slug, and description.
    */
   search(query, limit = config.maxSearchResults) {
     if (!query || typeof query !== 'string') {
       return [];
     }
 
-    const trimmed = query.trim().toLowerCase();
-    if (!trimmed) {
+    const rawTrimmed = query.trim().toLowerCase();
+    if (!rawTrimmed) {
       return [];
     }
 
+    // Extract numeric ID if user pasted a URL or typed "#54", "ID: 54", "product/54", etc.
+    const urlOrIdMatch = rawTrimmed.match(/(?:product\/|id:?\s*|#\s*)?(\d+)/i);
+    const extractedId = urlOrIdMatch ? urlOrIdMatch[1] : null;
+
+    // Clean tokens for multi-word search
+    const cleanQuery = rawTrimmed.replace(/^https?:\/\/[^\/]+/i, '').replace(/[^a-z0-9\s]/gi, ' ').trim();
+    const tokens = cleanQuery.split(/\s+/).filter(Boolean);
+
     const maxResults = Math.min(Math.max(1, parseInt(limit, 10) || config.maxSearchResults), 100);
 
-    // Exact matches score highest, then startsWith, then substring matches
-    const exactMatches = [];
-    const startsWithMatches = [];
-    const substringMatches = [];
+    const scoredProducts = [];
 
     for (const product of this.catalog) {
-      const nameLower = product.name.toLowerCase();
-      const brandLower = product.brand.toLowerCase();
-      const skuLower = product.sku.toLowerCase();
-      const categoryLower = product.category.toLowerCase();
+      const pIdStr = String(product.productId);
+      const nameLower = (product.name || '').toLowerCase();
+      const brandLower = (product.brand || '').toLowerCase();
+      const skuLower = (product.sku || '').toLowerCase();
+      const categoryLower = (product.category || '').toLowerCase();
+      const slugLower = (product.slug || '').toLowerCase();
+      const descLower = (product.description || '').toLowerCase();
 
-      // 1. Exact Name / SKU match
-      if (nameLower === trimmed || skuLower === trimmed) {
-        exactMatches.push(product);
-      }
-      // 2. Starts with query
-      else if (nameLower.startsWith(trimmed) || brandLower.startsWith(trimmed) || skuLower.startsWith(trimmed)) {
-        startsWithMatches.push(product);
-      }
-      // 3. Substring match across name, brand, sku, category
-      else if (
-        nameLower.includes(trimmed) ||
-        brandLower.includes(trimmed) ||
-        skuLower.includes(trimmed) ||
-        categoryLower.includes(trimmed)
-      ) {
-        substringMatches.push(product);
+      let score = 0;
+
+      // 1. Product ID Match (Highest Priority)
+      if (extractedId && pIdStr === extractedId) {
+        score += 1000;
+      } else if (extractedId && pIdStr.startsWith(extractedId)) {
+        score += 300;
+      } else if (pIdStr === rawTrimmed) {
+        score += 1000;
       }
 
-      if (exactMatches.length + startsWithMatches.length + substringMatches.length >= maxResults * 2) {
-        // Collect enough candidates then break for performance
-        break;
+      // 2. Exact Field Matches
+      if (nameLower === rawTrimmed) score += 500;
+      if (skuLower === rawTrimmed) score += 500;
+      if (brandLower === rawTrimmed) score += 400;
+      if (categoryLower === rawTrimmed) score += 300;
+
+      // 3. Prefix Matches
+      if (nameLower.startsWith(rawTrimmed)) score += 250;
+      if (skuLower.startsWith(rawTrimmed)) score += 250;
+      if (brandLower.startsWith(rawTrimmed)) score += 200;
+      if (categoryLower.startsWith(rawTrimmed)) score += 150;
+
+      // 4. Substring Matches for single-phrase query
+      if (nameLower.includes(rawTrimmed)) score += 100;
+      if (skuLower.includes(rawTrimmed)) score += 100;
+      if (brandLower.includes(rawTrimmed)) score += 80;
+      if (categoryLower.includes(rawTrimmed)) score += 60;
+      if (slugLower.includes(rawTrimmed)) score += 40;
+      if (descLower.includes(rawTrimmed)) score += 20;
+
+      // 5. Multi-token Token Matching (e.g. "Summit Monitor" matches both brand and category/name)
+      if (tokens.length > 1) {
+        let tokenMatches = 0;
+        for (const token of tokens) {
+          if (
+            nameLower.includes(token) ||
+            brandLower.includes(token) ||
+            skuLower.includes(token) ||
+            categoryLower.includes(token) ||
+            pIdStr.includes(token)
+          ) {
+            tokenMatches++;
+          }
+        }
+        if (tokenMatches === tokens.length) {
+          score += 150; // All tokens match
+        } else if (tokenMatches > 0) {
+          score += tokenMatches * 30; // Partial token match
+        }
+      }
+
+      if (score > 0) {
+        scoredProducts.push({ product, score });
       }
     }
 
-    const combined = [...exactMatches, ...startsWithMatches, ...substringMatches];
-    return combined.slice(0, maxResults);
+    // Sort descending by relevance score, with fallback tie-breaker by productId
+    scoredProducts.sort((a, b) => b.score - a.score || a.product.productId - b.product.productId);
+
+    return scoredProducts.slice(0, maxResults).map(sp => sp.product);
   }
 
   /**
