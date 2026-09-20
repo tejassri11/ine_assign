@@ -1,4 +1,32 @@
 import { chromium } from 'playwright';
+import { execSync } from 'child_process';
+
+/**
+ * Launches Chromium with automatic self-healing fallback.
+ * If Chromium is missing from server cache, runs `npx playwright install chromium` on demand.
+ */
+async function launchChromiumWithFallback(launchOptions) {
+  try {
+    return await chromium.launch(launchOptions);
+  } catch (err) {
+    const isMissingBinary = err.message.includes("Executable doesn't exist") || 
+                            err.message.includes("Please run the following command") ||
+                            err.message.includes("chrome-headless-shell");
+                            
+    if (isMissingBinary) {
+      console.warn('[BrowserManager] ⚠️ Chromium binary missing from runtime cache. Triggering self-healing install: npx playwright install chromium...');
+      try {
+        execSync('npx playwright install chromium', { stdio: 'inherit', env: { ...process.env, PLAYWRIGHT_BROWSERS_PATH: '0' } });
+        console.log('[BrowserManager] ✅ Chromium installed successfully. Retrying browser launch...');
+        return await chromium.launch(launchOptions);
+      } catch (installErr) {
+        console.error('[BrowserManager] ❌ Self-healing browser installation failed:', installErr.message);
+        throw err;
+      }
+    }
+    throw err;
+  }
+}
 
 /**
  * Creates and configures a Playwright browser instance and context.
@@ -9,7 +37,7 @@ export async function createBrowserSession(options = {}) {
   const isHeaded = options.headed === true || process.env.HEADLESS === 'false';
   const slowMo = isHeaded ? (options.slowMo ?? 50) : 0;
 
-  const browser = await chromium.launch({
+  const browser = await launchChromiumWithFallback({
     headless: !isHeaded,
     slowMo,
     args: [
