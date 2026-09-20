@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables & secrets (CRITICAL)
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+
+# Build outputs
+dist/
+build/
+**/dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Playwright & Scraper artifacts
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+
+# IDEs
+.vscode/
+.idea/

@@ -1,0 +1,47 @@
+import { chromium } from 'playwright';
+
+/**
+ * Creates and configures a Playwright browser instance and context.
+ * Supports headed and headless modes, memory optimization for Render,
+ * and realistic viewport / user-agent emulation.
+ */
+export async function createBrowserSession(options = {}) {
+  const isHeaded = options.headed === true || process.env.HEADLESS === 'false';
+  const slowMo = isHeaded ? (options.slowMo ?? 50) : 0;
+
+  const browser = await chromium.launch({
+    headless: !isHeaded,
+    slowMo,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--disable-blink-features=AutomationControlled'
+    ]
+  });
+
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+    viewport: { width: 1280, height: 800 },
+    deviceScaleFactor: 1,
+    locale: 'en-IN',
+    timezoneId: 'Asia/Kolkata'
+  });
+
+  // Resource optimization: block heavy images/media in headless mode to conserve RAM on free tiers
+  if (!isHeaded) {
+    await context.route('**/*.{png,jpg,jpeg,gif,webp,svg,woff,woff2,mp4,mp3}', route => {
+      route.abort();
+    });
+  }
+
+  const page = await context.newPage();
+
+  return {
+    browser,
+    context,
+    page,
+    isHeaded
+  };
+}

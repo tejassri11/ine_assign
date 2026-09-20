@@ -1,0 +1,25 @@
+{
+  "name": "ine-price-tracker-backend",
+  "version": "1.0.0",
+  "description": "Backend service for INE Product Price Tracker - Catalog & Search Module",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test tests/catalogSearch.test.js tests/scraperHelpers.test.js tests/trackingAndPersistence.test.js",
+    "test:scenarios": "node scripts/runScraperScenarios.js",
+    "test:cron": "node --test tests/cronAndPersistence.test.js",
+    "test:all": "node --test tests/*.test.js",
+    "catalog:refresh": "node scripts/refreshCatalog.js",
+    "scrape": "node scripts/runScraper.js",
+    "scrape:headed": "node scripts/runScraper.js --headed"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "playwright": "^1.63.0"
+  }
+}
