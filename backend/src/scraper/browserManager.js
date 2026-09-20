@@ -29,9 +29,9 @@ export async function createBrowserSession(options = {}) {
     timezoneId: 'Asia/Kolkata'
   });
 
-  // Resource optimization: block heavy images/media in headless mode to conserve RAM on free tiers
+  // Resource optimization: block heavy video/audio media only to preserve page rendering integrity
   if (!isHeaded) {
-    await context.route('**/*.{png,jpg,jpeg,gif,webp,svg,woff,woff2,mp4,mp3}', route => {
+    await context.route('**/*.{mp4,mp3,wav,avi}', route => {
       route.abort();
     });
   }

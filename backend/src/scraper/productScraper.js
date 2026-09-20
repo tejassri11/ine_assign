@@ -26,10 +26,10 @@ async function executeSingleScrapeAttempt(product, options, attemptNumber) {
     const { page } = session;
 
     console.log(`[Scraper] Attempt ${attemptNumber}: Navigating to ${targetUrl}...`);
-    await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
 
     // Ensure React app and product container mounted
-    await page.waitForSelector('.detail, .detail-info, .price-block', { timeout: 15000 });
+    await page.waitForSelector('.detail, .detail-info, .price-block, #root', { timeout: 25000 });
 
     // Dismiss any initial cookie modal
     await handleCookieBanner(page, 1500);
