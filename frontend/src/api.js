@@ -1,5 +1,6 @@
 export const fetchApi = async (endpoint, options = {}) => {
-  const url = `/api${endpoint}`;
+  const baseUrl = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+  const url = `${baseUrl}/api${endpoint}`;
   
   const defaultOptions = {
     headers: {
