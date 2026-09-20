@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "node start.cjs",
+    "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "test": "node --test tests/catalogSearch.test.js tests/scraperHelpers.test.js tests/trackingAndPersistence.test.js",
     "test:scenarios": "node scripts/runScraperScenarios.js",
@@ -14,7 +14,7 @@
     "catalog:refresh": "node scripts/refreshCatalog.js",
     "scrape": "node scripts/runScraper.js",
     "scrape:headed": "node scripts/runScraper.js --headed",
-    "render-build": "npm install && PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium"
+    "render-build": "npm install && npx playwright install chromium"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",
