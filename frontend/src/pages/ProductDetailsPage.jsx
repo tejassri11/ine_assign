@@ -31,6 +31,7 @@ export const ProductDetailsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isScraping, setIsScraping] = useState(false);
   const [scrapeSuccessMsg, setScrapeSuccessMsg] = useState(null);
+  const [scrapeErrorMsg, setScrapeErrorMsg] = useState(null);
   const [error, setError] = useState(null);
 
   const fetchAllData = async () => {
@@ -68,6 +69,7 @@ export const ProductDetailsPage = () => {
   const handleScrape = async () => {
     setIsScraping(true);
     setScrapeSuccessMsg(null);
+    setScrapeErrorMsg(null);
     try {
       const res = await api.scrapeProductNow(id);
       await fetchAllData();
@@ -75,7 +77,8 @@ export const ProductDetailsPage = () => {
       setScrapeSuccessMsg(`Playwright scrape completed successfully${dur ? ` in ${(dur / 1000).toFixed(1)}s` : ''}! Price revealed & logged.`);
       setTimeout(() => setScrapeSuccessMsg(null), 7000);
     } catch (err) {
-      alert(`Scrape failed: ${err.message}`);
+      const msg = err.data?.message || err.message || 'Scrape failed or timed out. Please try again.';
+      setScrapeErrorMsg(msg);
     } finally {
       setIsScraping(false);
     }
@@ -217,6 +220,17 @@ export const ProductDetailsPage = () => {
               <span className="font-medium">{scrapeSuccessMsg}</span>
             </div>
             <button onClick={() => setScrapeSuccessMsg(null)} className="text-xs text-emerald-400/80 hover:text-emerald-300">Dismiss</button>
+          </div>
+        )}
+
+        {/* Scrape Error Alert */}
+        {scrapeErrorMsg && (
+          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-300 text-sm flex items-center justify-between shadow-lg">
+            <div className="flex items-center gap-2.5">
+              <AlertTriangle size={18} className="text-rose-400" />
+              <span className="font-medium">{scrapeErrorMsg}</span>
+            </div>
+            <button onClick={() => setScrapeErrorMsg(null)} className="text-xs text-rose-400/80 hover:text-rose-300">Dismiss</button>
           </div>
         )}
 

@@ -241,7 +241,8 @@ router.post('/:id/scrape', async (req, res) => {
     } else {
       return res.status(422).json({
         success: false,
-        message: `Scrape failed for product ${productId} after all retries.`,
+        message: result.errorMessage || `Scrape attempt failed for product ${productId}. Please try again.`,
+        error: result.errorType || 'SCRAPE_FAILED',
         result
       });
     }
