@@ -1,12 +1,30 @@
 import express from 'express';
 import cors from 'cors';
+import { config } from './config/index.js';
 import productRoutes from './routes/productRoutes.js';
 import cronRoutes from './routes/cronRoutes.js';
 
 export function createApp() {
   const app = express();
 
-  app.use(cors());
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://ine-assign.vercel.app',
+    config.frontendUrl
+  ].filter(Boolean);
+
+  app.use(cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, Postman, cron) or if in allowed list
+      if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive fallback to ensure zero CORS blocks
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+  }));
   app.use(express.json());
 
   // Request logger

@@ -21,4 +21,6 @@ export const config = {
   supabaseServiceKey: (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim(),
   // Security token for cron-triggered scrapes
   cronSecret: (process.env.CRON_SECRET || 'dev-cron-secret-ine-2026').trim(),
+  // Allowed Frontend URL for CORS & redirects
+  frontendUrl: (process.env.FRONTEND_URL || 'https://ine-assign.vercel.app').trim(),
 };
