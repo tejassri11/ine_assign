@@ -4,7 +4,7 @@ services:
     runtime: node
     rootDir: backend
     buildCommand: npm install && PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium
-    startCommand: PLAYWRIGHT_BROWSERS_PATH=0 node src/server.js
+    startCommand: node start.cjs
     envVars:
       - key: NODE_ENV
         value: production

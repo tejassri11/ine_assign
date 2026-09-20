@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "PLAYWRIGHT_BROWSERS_PATH=0 node src/server.js",
+    "start": "node start.cjs",
     "dev": "node --watch src/server.js",
     "test": "node --test tests/catalogSearch.test.js tests/scraperHelpers.test.js tests/trackingAndPersistence.test.js",
     "test:scenarios": "node scripts/runScraperScenarios.js",
