@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: ine-assign
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium
+    startCommand: PLAYWRIGHT_BROWSERS_PATH=0 node src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: "0"
+      - key: PORT
+        value: "5001"
+      - key: INE_BASE_URL
+        value: https://demo.inelabteamdev.com
+      - key: FRONTEND_URL
+        value: https://ine-assign.vercel.app
+      - key: REFRESH_CATALOG_ON_STARTUP
+        value: "false"
+      - key: MAX_SEARCH_RESULTS
+        value: "20"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CRON_SECRET
+        sync: false
